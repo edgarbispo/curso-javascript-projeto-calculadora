@@ -51,22 +51,19 @@ class CalcController{
         return this._operation[this._operation.length - 1];
     };
 
+    setLastOperation(value) {
+        this._operation[this._operation.length - 1] = value;
+    }
+
     isOperator(value) {
         return (['+', '-', '*', '%', '/'].indexOf(value) > -1);
 
     };
 
-    setLastOperation(value) {
-        this._operation[this._operation.length - 1] = value.toString();
-    }
-
     pushOperation(value) {
 
         this._operation.push(value);
-
         if (this._operation.length > 3) {
-
-            let last = this._operation.pop();
 
             this.calc();
 
@@ -81,13 +78,24 @@ class CalcController{
         let result = eval(this._operation.join(""));    //Comando Join é semente ao toString, porém, ele defini o delimitador na hora de converter para string
 
         this._operation = [result, last];
-        console.log(this._operation);
+
+        this.setLastNumberToDisplay();
 
     }
 
     setLastNumberToDisplay(){
 
+        let lastNumber;
+        for (let i = this._operation.length - 1; i >= 0; i--){
 
+            if (!this.isOperator(this._operation[i])) {
+                lastNumber = this._operation[i];
+                break;
+            }
+
+        }
+
+        this.displayCalc = lastNumber;
 
     }
 
@@ -108,6 +116,8 @@ class CalcController{
 
                 this.pushOperation(value);
 
+                this.setLastNumberToDisplay();
+
             }
 
         } else {
@@ -126,7 +136,7 @@ class CalcController{
             }
 
         }
-        console.log(this._operation);
+
     };
 
     setError(){
@@ -165,12 +175,12 @@ class CalcController{
                 this.addOperation("%");
                 break;
 
-            case "ponto":
-                this.addOperation(".");
-                break;
-
             case 'igual':
 
+                break;
+
+            case "ponto":
+                this.addOperation(".");
                 break;
 
             case '0':
@@ -195,6 +205,7 @@ class CalcController{
     };
 
     initButtonsEvents(){
+
         let buttons = document.querySelectorAll("#buttons > g, #parts > g");
 
         buttons.forEach((btn,index) =>{
@@ -254,5 +265,5 @@ class CalcController{
     set currentDate(value){
         this._currentDate = value;
     }
-    
+
 }
