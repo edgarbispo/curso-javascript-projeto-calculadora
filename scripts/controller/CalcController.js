@@ -22,6 +22,8 @@ class CalcController{
             this.setDisplayDateTime();
         }, 1000);
 
+        this.setLastNumberToDisplay();
+
         /*
         setTimeout(() =>{
 
@@ -41,10 +43,13 @@ class CalcController{
 
     clearAll(){
         this._operation = [];
+        this.setLastNumberToDisplay();
+
     };
 
     clearEntry(){
         this._operation.pop();
+        this.setLastNumberToDisplay();
     };
 
     getLastOperation(){
@@ -73,11 +78,25 @@ class CalcController{
 
     calc(){
 
-        let last = this._operation.pop();
+        let last = '';
+
+        if (this._operation.length > 3) {
+            let last = this._operation.pop();
+        }
 
         let result = eval(this._operation.join(""));    //Comando Join é semente ao toString, porém, ele defini o delimitador na hora de converter para string
 
-        this._operation = [result, last];
+        if (last == "%") {
+
+            result /=  100;
+            this._operation = [result];
+
+        } else {
+
+            this._operation = [result];
+            if (last) this._operation.push(last);
+
+        }
 
         this.setLastNumberToDisplay();
 
@@ -94,6 +113,8 @@ class CalcController{
             }
 
         }
+
+        if (!lastNumber) lastNumber = 0;
 
         this.displayCalc = lastNumber;
 
@@ -146,7 +167,6 @@ class CalcController{
     execBtn(value){
 
         switch (value){
-
             case 'ac':
                 this.clearAll();
                 break;
@@ -171,12 +191,12 @@ class CalcController{
                 this.addOperation("*");
                 break;
 
-            case 'portenco':
+            case 'porcento':
                 this.addOperation("%");
                 break;
 
             case 'igual':
-
+                this.calc();
                 break;
 
             case "ponto":
