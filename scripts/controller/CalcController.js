@@ -3,6 +3,10 @@ class CalcController{
     constructor() {
 
         //A ideia do _ é para informar que é privado
+
+        this._lastOperator = '';
+        this._lastNumber = '';
+
         this._operation = [];
         this._locale = 'pt-BR';
         this._displayCalcEl = document.querySelector('#display');
@@ -39,22 +43,25 @@ class CalcController{
            element.addEventListener(event, fn, false);  // O false é para garantir que seja disparado somente uma vez o evento
         });
 
-    };
+    }
 
     clearAll(){
+
         this._operation = [];
+        this._lastNumber = '';
+        this._lastOperator = '';
         this.setLastNumberToDisplay();
 
-    };
+    }
 
     clearEntry(){
         this._operation.pop();
         this.setLastNumberToDisplay();
-    };
+    }
 
     getLastOperation(){
         return this._operation[this._operation.length - 1];
-    };
+    }
 
     setLastOperation(value) {
         this._operation[this._operation.length - 1] = value;
@@ -68,6 +75,7 @@ class CalcController{
     pushOperation(value) {
 
         this._operation.push(value);
+
         if (this._operation.length > 3) {
 
             this.calc();
@@ -76,15 +84,39 @@ class CalcController{
 
     }
 
+    getResult(){
+
+        return eval(this._operation.join(""));    //Comando Join é semente ao toString, porém, ele defini o delimitador na hora de converter para string
+
+    }
+
     calc(){
 
         let last = '';
 
-        if (this._operation.length > 3) {
-            let last = this._operation.pop();
+        this._lastOperator = this.getLastItem();
+
+        if (this._operation.length < 3) {
+
+            let firstItem = this._operation[0];
+
+            this._operation = [firstItem, this._lastOperator, this._lastNumber];
+
         }
 
-        let result = eval(this._operation.join(""));    //Comando Join é semente ao toString, porém, ele defini o delimitador na hora de converter para string
+        if (this._operation.length > 3) {
+
+            let last = this._operation.pop();
+
+            this._lastNumber = this.getResult();
+
+        } else if (this._operation.length == 3) {
+
+           this._lastNumber = this.getResult(false);
+
+        }
+
+        let result = this.getResult();
 
         if (last == "%") {
 
@@ -102,17 +134,32 @@ class CalcController{
 
     }
 
-    setLastNumberToDisplay(){
+    getLastItem(isOperator = true){
 
-        let lastNumber;
+        let lastItem;
+
         for (let i = this._operation.length - 1; i >= 0; i--){
 
-            if (!this.isOperator(this._operation[i])) {
-                lastNumber = this._operation[i];
+            if (this.isOperator(this._operation[i]) == isOperator) {
+                lastItem = this._operation[i];
                 break;
             }
 
         }
+
+        if (!lastItem) {
+
+            lastItem = (isOperator) ? this._lastOperator : this._lastNumber;
+
+        }
+
+        return lastItem;
+
+    }
+
+    setLastNumberToDisplay(){
+
+        let lastNumber = this.getLastItem(false);
 
         if (!lastNumber) lastNumber = 0;
 
@@ -127,11 +174,6 @@ class CalcController{
             if (this.isOperator(value)) {
 
                 this.setLastOperation(value);
-
-            } else if (isNaN(value)){
-
-                //Outra Coisa
-                console.log('Outra Coisa', value);
 
             } else {
 
@@ -150,7 +192,7 @@ class CalcController{
             } else {
 
                 let newValue = this.getLastOperation().toString() + value.toString();
-                this.setLastOperation(parseInt(newValue));
+                this.setLastOperation(parseFloat(newValue));
 
                 this.setLastNumberToDisplay();
 
@@ -158,11 +200,24 @@ class CalcController{
 
         }
 
-    };
+    }
 
     setError(){
         this.displayCalc = 'ERROR';
     };
+
+    addDot(){
+
+        let lastOperation = this.getLastOperation();
+
+        if (this.isOperator(lastOperation) || !lastOperation) {
+            this.pushOperation('0.');
+        } else {
+            this.setLastOperation(lastOperation.toString() + '.');
+        }
+
+        this.setLastNumberToDisplay();
+    }
 
     execBtn(value){
 
@@ -200,7 +255,7 @@ class CalcController{
                 break;
 
             case "ponto":
-                this.addOperation(".");
+                this.addDot(".");
                 break;
 
             case '0':
@@ -222,7 +277,7 @@ class CalcController{
 
         }
 
-    };
+    }
 
     initButtonsEvents(){
 
@@ -235,18 +290,18 @@ class CalcController{
 
                 this.execBtn(textBtn);
 
-            });
+            })
 
             this.addEventListenerAll(btn, 'mouseover mouseup mousedown', e => {         //Evento Especifico
                 btn.style.cursor = "pointer";
-            });
+            })
 
-        });
+        })
 
     }
 
     setDisplayDateTime(){
-        this.displayDate = this.currentDate.toLocaleDateString(this._locale,{
+        this.displayDate = this.currentDate.toLocaleDateString(this._locale, {
             day: "2-digit",
             month: "long",
             year: "numeric"
@@ -259,7 +314,9 @@ class CalcController{
     }
 
     set displayTime(value){
-        this._timeEl.innerHTML = value;
+
+        return this._timeEl.innerHTML = value;
+
     }
 
     get displayDate(){
@@ -267,7 +324,9 @@ class CalcController{
     }
 
     set displayDate(value){
+
         this._dateEl.innerHTML = value;
+
     }
 
     get displayCalc(){
